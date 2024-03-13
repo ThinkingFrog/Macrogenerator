@@ -1,10 +1,9 @@
 from pathlib import Path
-from typing import List
 
+import click
 from antlr4 import CommonTokenStream, FileStream
 
 from arithmetic_parser.ArithmeticLexer import ArithmeticLexer
-from arithmetic_parser.ArithmeticParser import ArithmeticParser
 from macro_parser.MacroLexer import MacroLexer
 from macro_parser.MacroParser import MacroParser
 from macro_parser.VisitorInterp import VisitorInterp
@@ -41,14 +40,28 @@ def parse_target_lang_file(path: Path):
     )
 
 
-def main():
-    macro_defs = parse_macro_file(Path("data/test.macro"))
-    print(macro_defs)
+@click.command("macrogenerator")
+@click.option(
+    "--macro-file",
+    "-m",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    required=True,
+)
+@click.option(
+    "--target-file",
+    "-t",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path),
+    required=True,
+)
+def main(
+    macro_file: Path,
+    target_file: Path,
+):
+    macro_defs = parse_macro_file(macro_file)
+    print(f"Macro definitions: {macro_defs}")
 
-    lang_tokens = parse_target_lang_file(Path("data/test.arithmetic"))
-    print(lang_tokens)
-    # for t in lang_tokens:
-    #     print(t.text)
+    lang_tokens = parse_target_lang_file(target_file)
+    print(f"Target language tokens list: {lang_tokens}")
 
     res_list = []
     for token in lang_tokens:
@@ -57,7 +70,7 @@ def main():
         else:
             res_list.append(token)
 
-    print(res_list)
+    print(f"Tokens after macro replacement: {res_list}")
 
 
 if __name__ == "__main__":
