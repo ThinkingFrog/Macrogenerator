@@ -4,6 +4,7 @@ import click
 from antlr4 import CommonTokenStream, FileStream, InputStream
 
 from arithmetic_parser.ArithmeticLexer import ArithmeticLexer
+from programming_lang_parser.ProgrammingLexer import ProgrammingLexer
 from macro_parser.MacroLexer import MacroLexer
 from macro_parser.MacroParser import MacroParser
 from macro_parser.VisitorInterp import VisitorInterp
@@ -30,7 +31,8 @@ def parse_target_lang_file(path: Path):
     lines = input_stream.strdata.split('\n')
     res = list()
     for line in lines:
-        lexer = ArithmeticLexer(InputStream(line))
+        #lexer = ArithmeticLexer(InputStream(line))
+        lexer = ProgrammingLexer(InputStream(line))
         token_stream = CommonTokenStream(lexer)
         res_line = list(
             map(
