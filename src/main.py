@@ -4,10 +4,10 @@ import click
 from antlr4 import CommonTokenStream, FileStream, InputStream
 
 from arithmetic_parser.ArithmeticLexer import ArithmeticLexer
-from programming_lang_parser.ProgrammingLexer import ProgrammingLexer
 from macro_parser.MacroLexer import MacroLexer
 from macro_parser.MacroParser import MacroParser
 from macro_parser.VisitorInterp import VisitorInterp
+from programming_lang_parser.ProgrammingLexer import ProgrammingLexer
 
 
 def parse_macro_file(path: Path) -> dict:
@@ -28,45 +28,41 @@ def parse_macro_file(path: Path) -> dict:
 
 def parse_target_lang_file(path: Path):
     input_stream = FileStream(str(path))
-    lines = input_stream.strdata.split('\n')
-    res = list()
+
+    lexer_cls = None
+    match path.suffix:
+        case ".arithmetic":
+            lexer_cls = ArithmeticLexer
+        case ".programming":
+            lexer_cls = ProgrammingLexer
+
+    lines = input_stream.strdata.split("\n")
+    res = []
     for line in lines:
-        #lexer = ArithmeticLexer(InputStream(line))
-        lexer = ProgrammingLexer(InputStream(line))
+        lexer = lexer_cls(InputStream(line))
         token_stream = CommonTokenStream(lexer)
         res_line = list(
             map(
                 lambda x: x.text,
                 token_stream.getTokens(0, token_stream.getNumberOfOnChannelTokens()),
-            ))
+            )
+        )
         res.append(res_line)
     return res
 
 
 def insert_macro_defs(macro_defs: dict, lang_exprs: list):
-    print(f"Macro definitions: {macro_defs}")
-    print(f"Target language tokens list:")
-    for expr in lang_exprs:
-        print(expr)
     res = []
     for expr in lang_exprs:
         token_list = []
         for token in expr:
-            if token in macro_defs.keys():
+            if token in macro_defs:
                 token_list.append(macro_defs[token])
             else:
                 token_list.append(token)
         res.append(token_list)
 
-    print(f"Tokens after macro replacement:")
-    for res_str in res:
-        print(res_str)
-    print("Result string: ")
-
-    for res_str in res:
-        print(*res_str)
     return res
-
 
 
 @click.command("macrogenerator")
@@ -86,10 +82,24 @@ def main(
     macro_file: Path,
     target_file: Path,
 ):
-    
+
     macro_defs = parse_macro_file(Path(macro_file))
     lang_tokens = parse_target_lang_file(Path(target_file))
-    insert_macro_defs(macro_defs, lang_tokens)
+
+    print(f"Macro definitions: {macro_defs}")
+    print("Target language tokens list:")
+    for expr in lang_tokens:
+        print(expr)
+
+    replaced = insert_macro_defs(macro_defs, lang_tokens)
+
+    print("Tokens after macro replacement:")
+    for res_str in replaced:
+        print(res_str)
+    print("Result string: ")
+
+    for res_str in replaced:
+        print(*res_str)
 
 
 if __name__ == "__main__":
