@@ -1,0 +1,9 @@
+T__0=1
+CHAR=2
+STRING=3
+DIGIT=4
+INT=5
+WS=6
+DEFINE=7
+'\n'=1
+'define'=7
