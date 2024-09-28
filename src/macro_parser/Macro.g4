@@ -1,14 +1,32 @@
 grammar Macro;
 
-// Lexer Rules
-CHAR: 'A' ..'Z';
-STRING: CHAR+;
-DIGIT: [0-9];
-INT: DIGIT+;
-WS: [ \t\n\r] -> skip;
+DEFINE_KEYWORD: 'define';
 
-DEFINE: 'define';
+UPPER_CHAR: 'A' ..'Z';
+LOWER_CHAR: 'a' ..'z';
+UNDERSCORE: '_';
+LEFT_BRACKET: '(';
+RIGHT_BRACKET: ')';
+ARGS_SEPARATOR: ',';
+NON_ZERO_DIGIT: [1-9];
+DIGIT: '0' | NON_ZERO_DIGIT;
 
-// Parser Rules
-start_: (expr '\n')* expr '\n'* EOF;
-expr: DEFINE (CHAR | STRING) (CHAR | STRING | DIGIT | INT);
+//  { !_input.LT(-1).getText().equals("define") }?
+
+INT: NON_ZERO_DIGIT DIGIT*;
+STRING:
+	(UPPER_CHAR | LOWER_CHAR | UNDERSCORE) (
+		UPPER_CHAR
+		| LOWER_CHAR
+		| DIGIT
+		| UNDERSCORE
+	)*;
+
+WS: [ \t\r]+ -> skip;
+NL: '\n' -> skip;
+
+MACRO_ARGS:
+	LEFT_BRACKET STRING (ARGS_SEPARATOR STRING)* RIGHT_BRACKET;
+
+start_: (expr NL)* expr EOF;
+expr: DEFINE_KEYWORD STRING STRING;
